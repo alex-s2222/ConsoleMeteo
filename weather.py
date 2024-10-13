@@ -4,6 +4,11 @@ import asyncio
 
 from pprint import pprint
 
+from database.models import Weather
+
+from database.connection import SessionManager, Session
+
+
 # API ключ от OpenWeatherMap
 API_KEY = "38fec43af62b54a4cd787bc6ed68d941"
 
@@ -15,8 +20,7 @@ LON = 37.6219
 URL = f"http://api.openweathermap.org/data/2.5/weather?lat={LAT}&lon={LON}&appid={API_KEY}&units=metric&lang=ru"
 
 
-async def get_weather_data():
-
+async def get_weather_data() -> dict:
     async with aiohttp.ClientSession() as session:
         async with session.get(URL) as response:
             if response.status == 200:
@@ -27,7 +31,7 @@ async def get_weather_data():
                 return None
             
 
-def parse_weather_data(data):
+def parse_weather_data(data) -> dict:
     # Парсим необходимые данные
     temperature = data['main']['temp']
     wind_speed = data['wind']['speed']
@@ -56,16 +60,31 @@ def parse_weather_data(data):
     }
 
 
-def get_wind_direction(degrees):
+def get_wind_direction(degrees) -> str:
     directions = ['С', 'СВ', 'В', 'ЮВ', 'Ю', 'ЮЗ', 'З', 'СЗ']
     index = round(degrees / 45) % 8
     return directions[index]
 
 
+async def save_db(data: dict):
+    weather_record = Weather(
+                temperature=data['temperature'],
+                wind_speed=data['wind_speed'],
+                wind_direction=data['wind_direction'],
+                pressure=data['pressure'],
+                precipitation_type=data['precipitation_type'],
+                precipitation_amount=data['precipitation_amount']
+            )
+    with SessionManager(Session) as session:
+        session.add(weather_record)
+        
+        
+
+
 async def job():
     weather_data = await get_weather_data()
     if weather_data:
-        pprint(weather_data)
+        await save_db(weather_data)
         print(f"Data saved at {weather_data['timestamp']}")
 
 
