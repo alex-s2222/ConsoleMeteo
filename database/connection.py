@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from .models import Base
 
 
-# Подключение к MySQL базе данных
+# Подключение к sqlLite базе данных
 DATABASE_URL = "sqlite:///weather_data.db"
 
 engine = create_engine(DATABASE_URL)

@@ -2,25 +2,23 @@ import aiohttp
 from datetime import datetime
 import asyncio
 
-from pprint import pprint
-
 from database.models import Weather
-
 from database.connection import SessionManager, Session
 
 
 # API ключ от OpenWeatherMap
-API_KEY = "38fec43af62b54a4cd787bc6ed68d941"
+API_KEY: str = "38fec43af62b54a4cd787bc6ed68d941"
 
 # Координаты района Сколтеха
-LAT = 55.7539
-LON = 37.6219
+LAT: float = 55.7539
+LON: float  = 37.6219
 
 # URL для запроса данных погоды
-URL = f"http://api.openweathermap.org/data/2.5/weather?lat={LAT}&lon={LON}&appid={API_KEY}&units=metric&lang=ru"
+URL: str = f"http://api.openweathermap.org/data/2.5/weather?lat={LAT}&lon={LON}&appid={API_KEY}&units=metric&lang=ru"
 
 
 async def get_weather_data() -> dict:
+    """Получаем данных из API"""
     async with aiohttp.ClientSession() as session:
         async with session.get(URL) as response:
             if response.status == 200:
@@ -32,7 +30,7 @@ async def get_weather_data() -> dict:
             
 
 def parse_weather_data(data) -> dict:
-    # Парсим необходимые данные
+    """Фильтруем данных"""
     temperature = data['main']['temp']
     wind_speed = data['wind']['speed']
     wind_direction = get_wind_direction(data['wind']['deg'])
@@ -61,28 +59,30 @@ def parse_weather_data(data) -> dict:
 
 
 def get_wind_direction(degrees) -> str:
+    """Получаем направление ветра"""
     directions = ['С', 'СВ', 'В', 'ЮВ', 'Ю', 'ЮЗ', 'З', 'СЗ']
     index = round(degrees / 45) % 8
     return directions[index]
 
 
-async def save_db(data: dict):
+async def save_db(data: dict) -> None:
+    """Сохраняем в базу данных"""
     weather_record = Weather(**data)
     
     with SessionManager(Session) as session:
         session.add(weather_record)
-        
-        
 
 
-async def job():
+async def job() -> None:
+    """Запускаем задачу"""
     weather_data = await get_weather_data()
     if weather_data:
         await save_db(weather_data)
-        print(f"Data saved at {weather_data['timestamp']}")
+        # print(f"Data saved at {weather_data['timestamp']}")
 
 
 async def periodic_task(interval):
+    """Запуск задач"""
     while True:
         await job()
         await asyncio.sleep(interval)

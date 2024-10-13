@@ -5,9 +5,9 @@ from database.connection import SessionManager, Session
 from database.models import Weather
 
 
-def get_data_from_db(limit: int = 10):
+def get_data_from_db(limit: int = 10) -> pd.DataFrame:
+    """Получаем данные из базы данных"""
     query = select(Weather).order_by(Weather.timestamp.desc()).limit(limit)
-    results = []
 
     with SessionManager(Session) as session:
         data = session.scalars(query).all()
@@ -26,9 +26,9 @@ def get_data_from_db(limit: int = 10):
     return df
 
 
-def export_to_excel(file_name: str):
+def export_to_excel(file_name: str) -> None:
+    """Запись данных в Excel"""
     df = get_data_from_db()
     
     # Экспортируем в Excel
     df.to_excel(file_name + '.xlsx', index=False)
-    print(f"Данные экспортированы в {file_name}")

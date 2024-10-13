@@ -5,10 +5,13 @@ from weather import periodic_task
 from export_excel import export_to_excel
 
 
-def run_weather():
-    asyncio.run(periodic_task(5))
+def run_weather() -> None:
+    """Запуск получения данных и запись в бд"""
+    asyncio.run(periodic_task(60))
 
-def command_handler():
+
+def command_handler() -> None:
+    """Запуск всех задач"""
     weather_thread = threading.Thread(target=run_weather, args=())
     weather_thread.daemon = True
     weather_thread.start()
@@ -23,7 +26,6 @@ def command_handler():
             excel_thread.join()
             print(f'Файл {filename} создан')
         
-
 
 if __name__ == '__main__':
     command_handler()
