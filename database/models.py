@@ -17,7 +17,7 @@ class Weather(Base):
     pressure = Column(Float)
     precipitation_type = Column(String)
     precipitation_amount = Column(Float)
-    timestamp = Column(DateTime, default=datetime.now())
+    timestamp = Column(DateTime)
 
     def __str__(self):
-        return f"{self.id} {self.temperature} {self.wind_speed} {self.wind_direction} {self.pressure} {self.precipitation_type} {self.precipitation_amount}"
+        return f"{self.id} {self.temperature} {self.wind_speed} {self.wind_direction} {self.pressure} {self.precipitation_type} {self.precipitation_amount} {self.timestamp}"

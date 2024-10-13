@@ -36,7 +36,7 @@ def parse_weather_data(data) -> dict:
     temperature = data['main']['temp']
     wind_speed = data['wind']['speed']
     wind_direction = get_wind_direction(data['wind']['deg'])
-    pressure = data['main']['pressure'] * 0.75006375541921  # перевод из гПа в мм рт. ст.
+    pressure = round(data['main']['pressure'] * 0.75006375541921, 2) # перевод из гПа в мм рт. ст.
 
     # Тип осадков и их количество
     precipitation_type = None
@@ -50,7 +50,7 @@ def parse_weather_data(data) -> dict:
         precipitation_amount = data['snow'].get('1h', 0)
 
     return {
-        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'timestamp': datetime.now(),
         'temperature': temperature,
         'wind_speed': wind_speed,
         'wind_direction': wind_direction,
@@ -67,14 +67,8 @@ def get_wind_direction(degrees) -> str:
 
 
 async def save_db(data: dict):
-    weather_record = Weather(
-                temperature=data['temperature'],
-                wind_speed=data['wind_speed'],
-                wind_direction=data['wind_direction'],
-                pressure=data['pressure'],
-                precipitation_type=data['precipitation_type'],
-                precipitation_amount=data['precipitation_amount']
-            )
+    weather_record = Weather(**data)
+    
     with SessionManager(Session) as session:
         session.add(weather_record)
         
