@@ -7,7 +7,11 @@ from export_excel import export_to_excel
 
 def run_weather() -> None:
     """Запуск получения данных и запись в бд"""
-    asyncio.run(periodic_task(60))
+    asyncio.run(periodic_task(5))
+
+
+def run_excel(file_name: str) -> None:
+    asyncio.run(export_to_excel(file_name))
 
 
 def command_handler() -> None:
@@ -20,7 +24,7 @@ def command_handler() -> None:
         command = input("Введите команду (export <filename> для экспорта в Excel\n")
         if command.startswith("export"):
             _, filename = command.split()
-            excel_thread = threading.Thread(target=export_to_excel, args=(filename,))
+            excel_thread = threading.Thread(target=run_excel, args=(filename,))
             print(f'Создается файл {filename}')
             excel_thread.start()
             excel_thread.join()

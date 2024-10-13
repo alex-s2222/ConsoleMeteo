@@ -3,7 +3,7 @@ from datetime import datetime
 import asyncio
 
 from database.models import Weather
-from database.connection import SessionManager, Session
+from database.connection import SessionManager, Session, init_db
 
 
 # API ключ от OpenWeatherMap
@@ -73,8 +73,7 @@ def get_wind_direction(degrees) -> str:
 async def save_db(data: dict) -> None:
     """Сохраняем в базу данных"""
     weather_record = Weather(**data)
-    
-    with SessionManager(Session) as session:
+    async with SessionManager(Session) as session:
         session.add(weather_record)
 
 
@@ -86,8 +85,13 @@ async def job() -> None:
         # print(f"Data saved at {weather_data['timestamp']}")
 
 
-async def periodic_task(interval):
+async def periodic_task(interval) -> None:
     """Запуск задач"""
+
+    # создаем базу данных
+    await init_db()
+
+    #запускаем задачи
     while True:
         await job()
         await asyncio.sleep(interval)

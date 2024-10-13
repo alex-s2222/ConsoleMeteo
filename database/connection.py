@@ -1,34 +1,39 @@
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 from .models import Base
 
 
 # Подключение к sqlLite базе данных
-DATABASE_URL = "sqlite:///weather_data.db"
+DATABASE_URL = "sqlite+aiosqlite:///weather_data.db"
 
-engine = create_engine(DATABASE_URL)
-Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)
+engine = create_async_engine(DATABASE_URL, future=True)
+Session = sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+
+
+async def init_db() -> None:
+    """инициализация бд"""
+    async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
 
 class SessionManager:
     def __init__(self, session_factory):
         self.session_factory = session_factory
-
-    def __enter__(self):
+    
+    async def __aenter__(self):
         # Создаем сессию при входе в контекст
         self.session = self.session_factory()
         return self.session
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
         try:
             # Если не было ошибок, зафиксируем изменения
             if exc_type is None:
-                self.session.commit()
+                await self.session.commit()
             else:
                 # Если возникли ошибки, откатим транзакцию
-                self.session.rollback()
+                await self.session.rollback()
         finally:
             # Закроем сессию в любом случае
-            self.session.close()
+            await self.session.close()
