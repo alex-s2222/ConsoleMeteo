@@ -20,14 +20,19 @@ URL: str = f"http://api.openweathermap.org/data/2.5/weather?lat={LAT}&lon={LON}&
 async def get_weather_data() -> dict:
     """Получаем данных из API"""
     async with aiohttp.ClientSession() as session:
-        async with session.get(URL) as response:
-            if response.status == 200:
-                data = await response.json()
-                return parse_weather_data(data)
-            else:
-                print(f"Error: Unable to fetch data (status code: {response.status})")
-                return None
-            
+        try:
+            async with session.get(URL, timeout=5) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        return parse_weather_data(data)
+                    else:
+                        print(f"Error: Unable to fetch data (status code: {response.status})")
+                        return None
+        except TimeoutError as e:
+            print("Сервер не отвечает")
+
+                
+        
 
 def parse_weather_data(data) -> dict:
     """Фильтруем данных"""
