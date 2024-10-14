@@ -7,7 +7,7 @@ from export_excel import export_to_excel
 
 def run_weather() -> None:
     """Запуск получения данных и запись в бд"""
-    asyncio.run(periodic_task(5))
+    asyncio.run(periodic_task(60))
 
 
 def run_excel(file_name: str) -> None:
